@@ -1,65 +1,26 @@
-# Dashboard Café
-
-Panel inicial para registrar y consultar ventas de café en grano y molido.
-
-## Requisitos
-- Node.js 20.9 o superior
-- Una cuenta/proyecto de Supabase
-- Visual Studio Code (recomendado)
-
-## 1. Instalar dependencias
-Abre una terminal dentro de esta carpeta y ejecuta:
-
-```bash
-npm install
-```
-
-## 2. Configurar Supabase
-1. Abre tu proyecto de Supabase.
-2. Entra a SQL Editor y crea una consulta nueva.
-3. Copia y ejecuta el contenido de `supabase/schema.sql`.
-4. Copia la Project URL y la clave pública/publishable (NO uses `service_role` ni una secret key).
-
-## 3. Configurar variables
-En la raíz del proyecto, crea un archivo llamado `.env.local` y coloca:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://TU-PROYECTO.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=TU_CLAVE_PUBLICABLE
-```
-
-Puedes tomar como referencia `.env.example`. No subas `.env.local` a GitHub.
-
-## 4. Ejecutar localmente
-
-```bash
-npm run dev
-```
-
-Abre http://localhost:3000
-
-## 5. Publicar
-Sube el proyecto a GitHub y luego impórtalo desde Vercel. En Vercel agrega las mismas variables de entorno que en `.env.local`.
-
-## Importante sobre seguridad
-El SQL incluido habilita políticas de demostración para que puedas probar la app sin iniciar sesión. No publiques datos reales con estas políticas. Antes de usar la app en producción, configura Supabase Auth, RLS por usuario y políticas que restrinjan cada registro a su propietario.
-
-## Estructura
-
-```text
-dashboard-cafe/
-├── app/
-│   ├── globals.css
-│   ├── layout.tsx
-│   └── page.tsx
-├── lib/
-│   └── supabase.ts
-├── supabase/
-│   └── schema.sql
-├── types/
-│   └── venta.ts
-├── .env.example
-├── .gitignore
-├── package.json
-└── README.md
-```
+Dashboard Café
+Panel de ventas con inicio de sesión y permisos por usuario usando Supabase Auth y Row Level Security (RLS).
+Publicación desde GitHub y Vercel
+Sube el contenido de esta carpeta a la raíz de tu repositorio de GitHub.
+En Vercel, abre el proyecto conectado al repositorio y espera el nuevo despliegue.
+Conserva las variables `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` con la URL del proyecto y la clave pública `anon`/publishable. Nunca uses `service_role` ni una secret key en el navegador.
+Configurar Supabase (una sola vez)
+Crea primero tu cuenta administradora en Authentication → Users → Add user.
+Abre `supabase/schema.sql`.
+Antes de ejecutarlo, reemplaza las dos apariciones de `TU_CORREO_ADMIN@EJEMPLO.COM` por el correo exacto de tu cuenta administradora.
+En Supabase abre SQL Editor → New query, pega el contenido completo y pulsa Run.
+El SQL crea perfiles, asigna tu cuenta el rol `admin`, asocia las ventas antiguas a tu cuenta y activa RLS. Las cuentas futuras se crean como `empleado`.
+Si el SQL falla en la instrucción `user_id set not null`, revisa que hayas sustituido correctamente el correo del administrador y vuelve a ejecutar el script completo después de corregirlo.
+Dar de alta empleados
+En Supabase abre Authentication → Users → Add user → Create new user.
+Escribe el correo del empleado y asigna una contraseña temporal segura; confirma el correo si la opción aparece.
+El trigger de Supabase crea automáticamente su perfil con rol `empleado`.
+Comparte sus credenciales de forma segura. El empleado entra en Dashboard Café con su correo y contraseña.
+No asignes el rol `admin` a empleados desde el navegador. Solo el administrador debe modificar roles desde el SQL Editor.
+Permisos
+Administrador: puede consultar todas las ventas.
+Empleado: solo puede consultar sus propias ventas.
+Cualquier venta nueva queda asociada al usuario que inició sesión.
+RLS aplica los permisos en la base de datos, no solamente en la interfaz.
+Desarrollo local (opcional)
+Requiere Node.js 20.9 o superior. Instala dependencias con `npm install`, configura `.env.local` a partir de `.env.example` y ejecuta `npm run dev`.
