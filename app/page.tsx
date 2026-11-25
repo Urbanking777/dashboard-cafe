@@ -81,13 +81,33 @@ export default function Home() {
     return Array.from(days, ([fecha, ingresos]) => ({ fecha, ingresos }));
   }, [ventas]);
 
-  async function iniciarSesion(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (!supabase) return;
-    setLoginError("");
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-    if (signInError) setLoginError("No se pudo iniciar sesión. Revisa tu correo y contraseña.");
+ async function iniciarSesion(e: FormEvent<HTMLFormElement>) {
+  e.preventDefault();
+  if (!supabase) return;
+
+  setLoginError("");
+
+  const { data, error: signInError } = await supabase.functions.invoke(
+    "login-username",
+    {
+      body: {
+        username: email.trim(),
+        password,
+      },
+    }
+  );
+
+  if (signInError || !data?.session) {
+    setLoginError("No se pudo iniciar sesión. Revisa tu nombre de usuario y contraseña.");
+    return;
   }
+
+  const { error: sessionError } = await supabase.auth.setSession(data.session);
+
+  if (sessionError) {
+    setLoginError("No se pudo iniciar sesión. Inténtalo de nuevo.");
+  }
+}
 
   async function cerrarSesion() {
     if (!supabase) return;
