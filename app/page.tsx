@@ -131,7 +131,16 @@ export default function Home() {
     <main className="auth-shell"><section className="auth-card">
       <div className="auth-mark"><Coffee size={25}/></div><p className="eyebrow">ACCESO PRIVADO</p><h1>Dashboard Café</h1><p className="auth-sub">Inicia sesión para consultar y registrar ventas.</p>
       {loginError && <div className="alert error"><AlertCircle size={18}/>{loginError}</div>}
-      <form className="login-form" onSubmit={iniciarSesion}><label>Correo electrónico<input type="email" autoComplete="username" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="tu@correo.com"/></label><label>Contraseña<input type="password" autoComplete="current-password" required value={password} onChange={e=>setPassword(e.target.value)} placeholder="Tu contraseña"/></label><button className="primary" type="submit"><LockKeyhole size={16}/> Entrar al dashboard</button></form>
+      <label>Nombre de usuario
+  <input
+    type="text"
+    autoComplete="username"
+    required
+    value={email}
+    onChange={e => setEmail(e.target.value)}
+    placeholder="antonio.mendoza"
+  />
+</label>
       <p className="login-foot">Las cuentas son creadas por el administrador.</p>
     </section></main>
   );
