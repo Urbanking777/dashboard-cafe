@@ -79,6 +79,7 @@ export default function Home() {
   }, []);
 
 
+
 const cargarVentas = useCallback(async () => {
   if (!supabase) {
     setVentas([]);
@@ -89,19 +90,38 @@ const cargarVentas = useCallback(async () => {
   setLoading(true);
   setError("");
 
-  const { data, error: queryError } = await supabase
-    .from("ventas_publicas")
-    .select("*")
-    .order("created_at", { ascending: false });
+  let todasLasVentas: Venta[] = [];
+  let desde = 0;
+  const tamanoBloque = 1000;
+  let continuar = true;
 
-  if (queryError) {
-    setError(queryError.message);
-  } else {
-    setVentas((data ?? []) as Venta[]);
+  while (continuar) {
+    const { data, error: queryError } = await supabase
+      .from("ventas_publicas")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .range(desde, desde + tamanoBloque - 1);
+
+    if (queryError) {
+      setError(queryError.message);
+      continuar = false;
+      break;
+    }
+
+    const bloque = (data ?? []) as Venta[];
+    todasLasVentas = [...todasLasVentas, ...bloque];
+
+    if (bloque.length < tamanoBloque) {
+      continuar = false;
+    } else {
+      desde += tamanoBloque;
+    }
   }
 
+  setVentas(todasLasVentas);
   setLoading(false);
 }, []);
+
 
 
   useEffect(() => {
