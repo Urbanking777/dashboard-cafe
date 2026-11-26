@@ -78,30 +78,31 @@ export default function Home() {
     return true;
   }, []);
 
-  const cargarVentas = useCallback(async () => {
-    if (!supabase) {
-      setVentas([]);
-      setLoading(false);
-      return;
-    }
 
-    setLoading(true);
-    setError("");
-
-    const { data, error: queryError } = await supabase
-      .from("ventas_publicas")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(100);
-
-    if (queryError) {
-      setError(queryError.message);
-    } else {
-      setVentas((data ?? []) as Venta[]);
-    }
-
+const cargarVentas = useCallback(async () => {
+  if (!supabase) {
+    setVentas([]);
     setLoading(false);
-  }, []);
+    return;
+  }
+
+  setLoading(true);
+  setError("");
+
+  const { data, error: queryError } = await supabase
+    .from("ventas_publicas")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (queryError) {
+    setError(queryError.message);
+  } else {
+    setVentas((data ?? []) as Venta[]);
+  }
+
+  setLoading(false);
+}, []);
+
 
   useEffect(() => {
     void cargarVentas();
