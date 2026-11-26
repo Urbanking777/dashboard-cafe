@@ -61,6 +61,51 @@ export default function Home() {
   const [ventaEditando, setVentaEditando] = useState<number | null>(null);
 
   const totalCalculado = calcularTotal(presentacion, gramos, cantidad);
+  
+const [semanaSeleccionada, setSemanaSeleccionada] = useState(() => {
+  const hoy = new Date();
+  const dia = hoy.getDay() || 7;
+  hoy.setDate(hoy.getDate() - dia + 1);
+  return hoy.toISOString().slice(0, 10);
+});
+
+const [mesSeleccionado, setMesSeleccionado] = useState(() => {
+  return new Date().toISOString().slice(0, 7);
+});
+
+const inicioSemana = new Date(`${semanaSeleccionada}T00:00:00`);
+const finSemana = new Date(inicioSemana);
+finSemana.setDate(finSemana.getDate() + 7);
+
+const ventasSemana = ventas.filter((v) => {
+  const fecha = new Date(v.created_at);
+  return fecha >= inicioSemana && fecha < finSemana;
+});
+
+const ventasMes = ventas.filter((v) => {
+  const fecha = new Date(v.created_at);
+  const [anio, mes] = mesSeleccionado.split("-").map(Number);
+
+  return (
+    fecha.getFullYear() === anio &&
+    fecha.getMonth() + 1 === mes
+  );
+});
+
+const calcularResumenPeriodo = (lista: Venta[]) => ({
+  ingresos: lista.reduce((suma, v) => suma + Number(v.total_mxn), 0),
+  bolsas: lista.reduce((suma, v) => suma + Number(v.cantidad), 0),
+  grano: lista
+    .filter((v) => v.presentacion === "grano")
+    .reduce((suma, v) => suma + Number(v.cantidad), 0),
+  molido: lista
+    .filter((v) => v.presentacion === "molido")
+    .reduce((suma, v) => suma + Number(v.cantidad), 0),
+});
+
+const resumenSemana = calcularResumenPeriodo(ventasSemana);
+const resumenMes = calcularResumenPeriodo(ventasMes);
+
 
   const comprobarAdmin = useCallback(async (userId: string) => {
     if (!supabase) return false;
@@ -395,6 +440,50 @@ const cargarVentas = useCallback(async () => {
           )}
         </div>
       </header>
+<section className="metrics" style={{ marginBottom: 24 }}>
+  <article className="metric">
+    <div className="metric-head">
+      <span>Reporte semanal</span>
+      <ShoppingBag size={20} />
+    </div>
+
+    <label>
+      Seleccionar semana (elige un lunes):
+      <input
+        type="date"
+        value={semanaSeleccionada}
+        onChange={(e) => setSemanaSeleccionada(e.target.value)}
+      />
+    </label>
+
+    <h2>{money(resumenSemana.ingresos)}</h2>
+    <p>{resumenSemana.bolsas} bolsas vendidas</p>
+    <p>Molido: {resumenSemana.molido} bolsas</p>
+    <p>En grano: {resumenSemana.grano} bolsas</p>
+  </article>
+
+  <article className="metric">
+    <div className="metric-head">
+      <span>Reporte mensual</span>
+      <DollarSign size={20} />
+    </div>
+
+    <label>
+      Seleccionar mes:
+      <input
+        type="month"
+        value={mesSeleccionado}
+        onChange={(e) => setMesSeleccionado(e.target.value)}
+      />
+    </label>
+
+    <h2>{money(resumenMes.ingresos)}</h2>
+    <p>{resumenMes.bolsas} bolsas vendidas</p>
+    <p>Molido: {resumenMes.molido} bolsas</p>
+    <p>En grano: {resumenMes.grano} bolsas</p>
+  </article>
+</section>
+
 
       <section className="welcome">
         <div>
