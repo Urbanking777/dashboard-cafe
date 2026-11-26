@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Dashboard Café",
   description: "Panel de control de ventas de café en grano y molido",
 
-  manifest: "/manifest.webmanifest",
+  manifest: "/manifest.json",
 
   icons: {
     icon: "/icon-192.png",
