@@ -106,6 +106,59 @@ const calcularResumenPeriodo = (lista: Venta[]) => ({
 const resumenSemana = calcularResumenPeriodo(ventasSemana);
 const resumenMes = calcularResumenPeriodo(ventasMes);
 
+const exportarExcel = async (
+  tipo: "semanal" | "mensual",
+  lista: Venta[]
+) => {
+  try {
+    const ExcelJS = await import("exceljs");
+    const libro = new ExcelJS.Workbook();
+    const hoja = libro.addWorksheet("Ventas");
+
+    hoja.columns = [
+      { header: "Fecha", key: "fecha", width: 22 },
+      { header: "Presentación", key: "presentacion", width: 18 },
+      { header: "Tueste", key: "tueste", width: 15 },
+      { header: "Gramos", key: "gramos", width: 12 },
+      { header: "Cantidad", key: "cantidad", width: 12 },
+      { header: "Importe (MXN)", key: "total", width: 18 },
+    ];
+
+    hoja.getRow(1).font = { bold: true };
+
+    lista.forEach((venta) => {
+      hoja.addRow({
+        fecha: new Date(venta.created_at).toLocaleString("es-MX"),
+        presentacion: venta.presentacion,
+        tueste: venta.tueste,
+        gramos: venta.gramos,
+        cantidad: venta.cantidad,
+        total: Number(venta.total_mxn),
+      });
+    });
+
+    hoja.autoFilter = "A1:F1";
+    hoja.getColumn("total").numFmt = '"$"#,##0.00';
+
+    const contenido = await libro.xlsx.writeBuffer();
+    const archivo = new Blob([contenido as BlobPart], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const url = URL.createObjectURL(archivo);
+    const enlace = document.createElement("a");
+    enlace.href = url;
+    enlace.download = `ventas-${tipo}.xlsx`;
+    enlace.click();
+    URL.revokeObjectURL(url);
+
+    setMensaje("Archivo de Excel descargado correctamente.");
+  } catch (error) {
+    console.error(error);
+    setError("No se pudo generar el archivo de Excel.");
+  }
+};
+
 
   const comprobarAdmin = useCallback(async (userId: string) => {
     if (!supabase) return false;
@@ -460,6 +513,17 @@ const cargarVentas = useCallback(async () => {
     <p>{resumenSemana.bolsas} bolsas vendidas</p>
     <p>Molido: {resumenSemana.molido} bolsas</p>
     <p>En grano: {resumenSemana.grano} bolsas</p>
+    
+<button
+  className="primary"
+  type="button"
+  onClick={() => exportarExcel("semanal", ventasSemana)}
+  disabled={ventasSemana.length === 0}
+>
+  <Package size={18} />
+  Descargar Excel semanal
+</button>
+
   </article>
 
   <article className="metric">
@@ -481,6 +545,17 @@ const cargarVentas = useCallback(async () => {
     <p>{resumenMes.bolsas} bolsas vendidas</p>
     <p>Molido: {resumenMes.molido} bolsas</p>
     <p>En grano: {resumenMes.grano} bolsas</p>
+    
+<button
+  className="primary"
+  type="button"
+  onClick={() => exportarExcel("mensual", ventasMes)}
+  disabled={ventasMes.length === 0}
+>
+  <Package size={18} />
+  Descargar Excel mensual
+</button>
+
   </article>
 </section>
 
